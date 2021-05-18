@@ -16,6 +16,9 @@ async function main() {
     if ((await datastore.findOne({ bvid: media.bvid })) != null) {
       continue;
     }
+
+    console.log(media.bvid);
+
     convert(media.bvid).then(
       (path) => {
         datastore.insert({ bvid: media.bvid, path });

@@ -1,7 +1,6 @@
 const fs = require("fs");
 const fsPromises = fs.promises;
 const util = require("util");
-const execFile = util.promisify(require("child_process").execFile);
 const ffmpeg = require("fluent-ffmpeg");
 const sanitize = require("sanitize-filename");
 const axios = require("./axios");
@@ -102,7 +101,7 @@ function loudnormPass1(file) {
   });
 }
 
-function loudnormPass2(input, output, measure) {
+function loudnormPass2({ input, output, measure, cover, info }) {
   const loudnorm =
     "loudnorm=i=-16:lra=9:tp=-1:measured_i=" +
     measure.input_i +
@@ -113,12 +112,36 @@ function loudnormPass2(input, output, measure) {
     ":measured_thresh=" +
     measure.input_thresh;
 
+  const title = info.title;
+  const artists = info.staffs.map((s) => s.name).join("/");
+
   return new Promise((resolve, reject) => {
     const ff = ffmpeg()
       .input(input)
+      .input(cover)
       .withAudioFilter(loudnorm)
+      .withVideoFilter(
+        `scale='if(gt(iw,ih),-1,300):if(gt(iw,ih),300,-1)', crop=300:300:exact=1 `
+      )
       .audioFrequency(48000)
-      .audioBitrate("256k");
+      .audioBitrate("320k")
+      .videoCodec("mjpeg")
+      .addOutputOption([
+        "-map",
+        "0:0",
+        "-map",
+        "1:0",
+        "-id3v2_version",
+        "3",
+        "-metadata:s:v",
+        "title=Album cover ",
+        "-metadata:s:v",
+        "comment=Cover (front) ",
+        "-metadata",
+        `title=${title}${title.split(" ").length == 2 ? " " : ""}`,
+        "-metadata",
+        `artist=${artists}${artists.split(" ").length == 2 ? " " : ""}`,
+      ]);
 
     ff.on("end", function () {
       resolve();
@@ -139,19 +162,15 @@ module.exports = async function convert(bvid) {
   await downloadIfNotExists(videoInfo.coverUrl, coverFile);
 
   const measure = await loudnormPass1(srcFile);
-  const outFile = "data/" + sanitize(videoInfo.title) + ".m4a";
-  await loudnormPass2(srcFile, outFile, measure);
+  const outFile = "data/" + sanitize(videoInfo.title) + ".mp3";
+  await loudnormPass2({
+    input: srcFile,
+    output: outFile,
+    measure,
+    cover: coverFile,
+    info: videoInfo,
+  });
 
-  await execFile("atomicparsley", [
-    outFile,
-    "--artist",
-    videoInfo.staffs.map((s) => s.name).join("/"),
-    "--title",
-    videoInfo.title,
-    "--artwork",
-    coverFile,
-    "--overWrite",
-  ]);
   await fsPromises.unlink(srcFile);
   await fsPromises.unlink(coverFile);
   await fsPromises.access(outFile);
