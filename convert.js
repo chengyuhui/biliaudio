@@ -29,7 +29,7 @@ async function downloadFile(fileUrl, outputPath) {
       fs.unlinkSync(outputPath + ".dl");
       reject(err);
     });
-    
+
     writer.on("close", () => {
       if (!error) {
         fs.renameSync(outputPath + ".dl", outputPath);
@@ -115,7 +115,7 @@ function loudnormPass2({ input, output, measure, cover, info }) {
     measure.input_thresh;
 
   const title = info.title;
-  const artists = info.staffs.map((s) => s.name).join("/");
+  const artists = info.staffs.map((s) => s.name.replace("/", "")).join(" / ");
 
   return new Promise((resolve, reject) => {
     const ff = ffmpeg()

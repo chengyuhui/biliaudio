@@ -1,4 +1,4 @@
-.PHONY: docker
+.PHONY: build run docker-multi
 
 build:
 	docker buildx build --load -t chengyuhui/biliaudio:latest .
