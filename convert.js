@@ -22,12 +22,14 @@ async function downloadFile(fileUrl, outputPath) {
     response.data.pipe(writer);
 
     let error = null;
+
     writer.on("error", (err) => {
       error = err;
       writer.close();
       fs.unlinkSync(outputPath + ".dl");
       reject(err);
     });
+    
     writer.on("close", () => {
       if (!error) {
         fs.renameSync(outputPath + ".dl", outputPath);

@@ -4,10 +4,14 @@ const convert = require("./convert");
 
 const datastore = Datastore.create("data/db.db");
 
-const LIST_ID = "1237625640";
+if (!process.env.BILI_LIST_ID) {
+  console.error("请用 BILI_LIST_ID 环境变量提供收藏夹ID");
+  process.exit(1);
+}
+
 const LIST_URL =
   "https://api.bilibili.com/x/v3/fav/resource/list?media_id=" +
-  LIST_ID +
+  process.env.BILI_LIST_ID +
   "&pn=1&ps=20&keyword=&order=mtime&type=0&tid=0&platform=web&jsonp=jsonp";
 
 async function main() {
