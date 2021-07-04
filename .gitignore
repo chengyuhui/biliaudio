@@ -2,3 +2,6 @@ data/*
 !data/.gitkeep
 node_modules
 buildkitd.toml
+
+__pycache__
+.venv

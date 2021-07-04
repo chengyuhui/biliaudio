@@ -1,3 +1,7 @@
+data/*
+!data/.gitkeep
 node_modules
-npm-debug.log
 buildkitd.toml
+
+__pycache__
+.venv

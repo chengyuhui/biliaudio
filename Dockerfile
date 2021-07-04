@@ -1,13 +1,13 @@
-FROM "node:lts-alpine"
+FROM "python:3.9-alpine"
 
 # RUN apt-get update && apt-get install -y ffmpeg atomicparsley
 RUN apk --no-cache --update upgrade && apk --no-cache add ffmpeg
 
 WORKDIR /app
 
-COPY package*.json ./
-RUN npm ci --only=production
+COPY requirements.txt ./
+RUN pip install -r requirements.txt
 
 COPY . .
 
-CMD ["node", "index.js"]
+CMD ["python", "app.py"]
