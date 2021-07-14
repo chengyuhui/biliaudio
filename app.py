@@ -72,6 +72,7 @@ def process_media(media):
 
     tags = EasyID3(out_file)
     tags["title"] = media['title']
+    tags["album"] = media['title']
     tags["artist"] = authors
     tags.save()
 
